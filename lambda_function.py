@@ -73,36 +73,58 @@ class Logs:
       RoleSessionName="Assume_Role_Session"
     )
     credentials=assumed_role['Credentials']
-    self.logs_client=boto3.client('logs',
-                aws_access_key_id=credentials['AccessKeyId]',
-                aws_secret_access_key=['SecretAccessKey'],
-                aws_session_token=credentials['SessionToken']                             
-                                              )
-  
+    self.logs_client=boto3.client(
+      'logs',
+      aws_access_key_id=credentials['AccessKeyId]',
+      aws_secret_access_key=['SecretAccessKey'],
+      aws_session_token=credentials['SessionToken']
+                                    )
   def put_logs(self,msg):
+    current_milli_time=int(round(time.time() * 1000));
+    
+    print(current_milli_time)
+    try:
+      create_log_stream=self.logs_client_create_log_stream(
+        logGroupName='test',
+        logStreamName=msg.get('imageId').get('imageDigest').replace(":","-")
+      )
+    except:
+      return "Already Done!!!";
+    else:
+      response = self.logs_client.put_log_events(
+        logGroupName='test',
+        logStreamName=msg.get('imageId').get('imageDigest').replace(":","-"),
+        logEvents=[
+          {
+            'timestamp':current_milli_time,
+            'message':json.dumps(msg)
+          }
+        ]
+      )
+        return response;
+                                    
+def lambda_handler(event, context):
+  # TODO implement
+                                    
+  records=event.get('Records');
+  body=json.loads(records[0].get('body'));
+  detail=body.get('detail');
+
+  _repositoryName=detail.get('responseElements').get('image').get('repositoryName');
+  _imageId=detail.get('responseElements').get('image').get('imageId');
+  print("#####_repositoryName####");
+  print(_repositoryName);
+  print("####_imageId###");
+  print(_imageId);
+
+                                    
+  ecr=Ecr();
+  result=ecr.image_scan(_repositoryName,_imageId);
+  logs=Logs();
+  result=logs.put_logs(result);
+  print(result);
+  return result                                    
+                                    
+                                    
+                                    
                                               
-    
-  
-  
-  
-  
-  
-  
-  
-  
-  
-      
-      
-      
-      
-      
-      
-      
-      
-    
-    
-    
-    
-    
-    
-    

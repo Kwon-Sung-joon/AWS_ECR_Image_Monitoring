@@ -3,7 +3,8 @@ AWS_ECR_Image_Monitoring
 
 # Architecture
 
-![image](https://user-images.githubusercontent.com/43159901/212322767-5cc2eaf0-c160-4f28-9bd6-8a6aa1d4840c.png)
+![image](https://user-images.githubusercontent.com/43159901/212323161-50021308-88ea-4de1-b7cb-ded0d8340bf3.png)
+
 
 
 # Scenario

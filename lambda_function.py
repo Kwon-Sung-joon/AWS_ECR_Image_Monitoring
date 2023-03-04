@@ -5,8 +5,8 @@ import time
 
 '''
 create by ksj 2022-11-18
-'''
 
+'''
 
 class Ecr:
   def __init__(self):
@@ -63,8 +63,22 @@ class Ecr:
       'vulnerabilities':response.get('imageScanFindings').get('findings')
     }
     
+    vulnerabilities_high=[];
+    for i in result['vulnerabilities']:
+      vulnerabilities_high.append(i) if i['severity'] == 'HIGH' or i['severity'] == 'CRITICAL' else '';
+    result['vulnerabilities']=vulnerabilities_high;
+    
     return result
   
+  def get_image_current_tags(self,_repositoryName,_imageId):
+    response=self.ecr_client.list_images(
+      repositoryName=_repositoryName,
+      maxResults=1000
+    )
+    
+    for i in response.get(imageIds'):
+      if i['imageDigest'] == _imageId['imageDigest']:
+        return i
 class Logs:
   def __init__(self):
     self.sts_client=boto3.client('sts');
@@ -80,6 +94,7 @@ class Logs:
       aws_session_token=credentials['SessionToken']
                                     )
   def put_logs(self,msg):
+    result=[];
     current_milli_time=int(round(time.time() * 1000));
     
     print(current_milli_time)

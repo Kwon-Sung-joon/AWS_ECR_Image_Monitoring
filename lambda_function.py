@@ -95,16 +95,34 @@ class Logs:
                                     )
   def put_logs(self,msg):
     result=[];
-    current_milli_time=int(round(time.time() * 1000));
-    
-    print(current_milli_time)
-    try:
-      create_log_stream=self.logs_client_create_log_stream(
-        logGroupName='test',
-        logStreamName=msg.get('imageId').get('imageDigest').replace(":","-")
+    for i in msg['vulnerabilities']:
+      current_milli_time=int(round(time.time() * 1000));
+      try:
+        create_log_stream=self.logs_client_create_log_stream(
+          logGroupName='test',
+          logStreamName=msg.get('imageId').get('imageDigest').replace(":","-")+"-"+i['name']
       )
+      log={
+        'repositoryName':msg.get('repositoryName'),
+        'iamgeId':msg.get('imageId'),
+        'imageScanStatus':msg.get('imageScanStatus'),
+        'vulnerabilities':i
+      }
+      response=self.logs_client.put_log_events(
+        logGroupName='test',
+        logStreamName=msg.get('imageId').get('imageDigest').replace(":","-")+"-"+i['name'],
+        logEvents=[
+          {
+            'timestamp':current_milli_time,
+            'message':json.dumps(log)
+          }
+        ]
+      )
+      result.append(response);
     except:
-      return "Already Done!!!";
+      continue
+    return response;  
+    '''
     else:
       response = self.logs_client.put_log_events(
         logGroupName='test',
@@ -117,7 +135,7 @@ class Logs:
         ]
       )
         return response;
-                                    
+    '''                                
 def lambda_handler(event, context):
   # TODO implement
                                     
@@ -129,17 +147,12 @@ def lambda_handler(event, context):
   _imageId=detail.get('responseElements').get('image').get('imageId');
   print("#####_repositoryName####");
   print(_repositoryName);
-  print("####_imageId###");
-  print(_imageId);
-
-                                    
   ecr=Ecr();
+  _imageTag=ecr.get_image_current_tags(_repositoryName,_imageId);
+  print("####_imageId###");
+  print(_imageTag);                
   result=ecr.image_scan(_repositoryName,_imageId);
   logs=Logs();
   result=logs.put_logs(result);
   print(result);
-  return result                                    
-                                    
-                                    
-                                    
-                                              
+  return result                     
